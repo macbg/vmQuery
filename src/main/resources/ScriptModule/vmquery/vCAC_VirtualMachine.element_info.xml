@@ -2,8 +2,8 @@
 <!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
 <properties>
 <comment>Exported from [server]</comment>
-<entry key="categoryPath">com.vmware.pscoe.library.vmquery</entry>
-<entry key="name">Date</entry>
+<entry key="categoryPath">vmquery</entry>
+<entry key="name">vCAC_VirtualMachine</entry>
 <entry key="type">ScriptModule</entry>
-<entry key="id">4abd2333-2787-4669-9e8e-ec6483968168</entry>
+<entry key="id">6f16accd-2e76-451b-8c8c-d2de03abee95</entry>
 </properties>
