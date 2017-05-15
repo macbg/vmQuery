@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.pscoe.library.vmquery</entry>
+<entry key="name">vCAC_Blueprint</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">14999af9-746a-42d0-9065-e0e362cf0f64</entry>
+</properties>

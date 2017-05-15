@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dunes-script-module name="vCAC_Blueprint" result-type="void" api-version="6.0.0" id="14999af9-746a-42d0-9065-e0e362cf0f64" version="0.0.1" allowed-operations="vef">
+  <description><![CDATA[MIT License
+
+Copyright (c) 2016 Krasimir Markov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
+  <param n="scope" t="Any"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[scope.$.registerModule('vCAC:Blueprint', ['Server', function(object, server) {
+	
+	function wrapperObject(innerObject) {
+		var _innerObj = innerObject;
+		
+		/** 
+		 * Returns vCAC virtual machine that serves as a template for this blueprint.
+		 * @returns {VC:VirtualMachine}
+		 */
+		this.cloneFrom = function() {
+			var blueprint = _innerObj;
+			
+			//TODO: use __clonefromid, whenever available, for more accurate result
+			
+			var cloneFromName = this.properties('__clonefrom');
+			
+			return $({'vCAC:VirtualMachine' : {'virtualMachineName' : cloneFromName}});
+		}
+		
+		/** 
+		 * Returns the vcac host associated with this blueprint.
+		 * @returns {vCAC:VCACHost}
+		 */
+		this.host = function() {
+			var blueprint = _innerObj;
+			//return $(Server.findForType("vCAC:VCACHost", vCACVm.getEntity().hostId));
+			return $(server.findForType("vCAC:VCACHost", blueprint.getEntity().hostId));
+		};
+		
+		this.properties = function(propertyName, propertyValue) {
+			var blueprint = _innerObj;
+			
+			var model = 'ManagementModelEntities.svc';
+			var entitySet = 'VirtualMachineTemplateProperties';
+			
+			var properties = blueprint.getEntity().getLink(this.host().toNativeObject(), entitySet);
+			if (propertyName != null && propertyName != undefined) {
+				var property = null;
+				for each (var p in properties) {
+					if (p.getProperties().get('PropertyName') == propertyName) {
+						property = p;
+						break;
+					};
+				}
+				if (!(propertyValue != null && propertyValue != undefined)) {
+					return property.getProperties().get('PropertyValue');
+				} else {
+					var entityProperties = new Properties();
+					entityProperties.put("PropertyName", propertyName);
+					entityProperties.put("PropertyValue", propertyValue);
+					entityProperties.put("IsHidden", false);
+					entityProperties.put("IsRuntime", false);
+					entityProperties.put("IsEncrypted", false);
+					
+					var entityLinks = new Properties();
+					entityLinks.put("VirtualMachineTemplate", blueprint.getEntity());	
+				
+					if (property != null) {
+						var entityKey = property.entityKey;
+						var entityKeyId = entityKey.get("Id");
+						
+						vCACEntityManager.updateModelEntityBySerializedKey(this.host().toNativeObject().id, model, entitySet, entityKeyId, entityProperties, entityLinks);
+					} else {
+						vCACEntityManager.createModelEntity(this.host().toNativeObject().id, model, entitySet, entityProperties, entityLinks);
+					}
+				}
+			} else {
+				var jsonProperties = [];
+				for each (var p in properties) {
+					jsonProperties[p.getProperties().get('PropertyName')] = p.getProperties().get('PropertyValue');
+				}
+				return jsonProperties;
+			}
+		};
+		
+		this.removeProperties = function(propertyName) {
+			var blueprint = _innerObj;
+			
+			var model = 'ManagementModelEntities.svc';
+			var entitySet = 'VirtualMachineTemplateProperties';
+			
+			var properties = blueprint.getEntity().getLink(this.host().toNativeObject(), entitySet);
+			
+			for each (var p in properties) {
+				if (p.getProperties().get('PropertyName') == propertyName) {
+					property = p;
+					break;
+				};
+			}
+			
+			if (property != null) {	
+				var entityKey = property.entityKey;
+				var entityKeyId = entityKey.get("Id");
+				
+				vCACEntityManager.deleteModelEntityBySerializedKey(this.host().toNativeObject().id, model, entitySet, entityKeyId, null);
+			}
+		};
+		
+		this.toNativeObject = function() {
+			return _innerObj;
+		}
+		
+		this.vroTags = function(tagName) {
+			var jsonTags = [];
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			var globalTags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				var value = tags.get(tagName);
+				
+				if (value) return value;
+				
+				return globalTags.get(tagName);
+			} else {
+				for each (var k in globalTags.keys) {
+					jsonTags[k] = globalTags.get(k);
+				}
+				
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.private = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tag(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.global = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tagGlobally(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+	};
+
+	return new wrapperObject(object);
+}]);]]></script>
+</dunes-script-module>

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dunes-script-module name="VC_VirtualMachine" result-type="void" api-version="6.0.0" id="ab78e384-a34c-4fbf-8870-df8b3fc34331" version="0.0.4" allowed-operations="vef">
+  <description><![CDATA[MIT License
+
+Copyright (c) 2016 Krasimir Markov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
+  <param n="scope" t="Any"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[scope.$.registerModule('VC:VirtualMachine', function(object) {
+	
+	function wrapperObject(innerObject) {
+		var _innerObj = innerObject;
+		
+		function _isOs(osType) {
+			var vm = _innerObj;
+			
+			if (vm.guest) {
+				if (!(vm.guest.guestFullName == null && vm.guest.guestFamily == null)) {
+					var searchString = '' + vm.guest.guestFullName + vm.guest.guestFamily;
+					
+					return (searchString.toLowerCase().indexOf(osType) > -1);
+				}
+			} 
+			
+			if (vm.config) {
+				if (!(vm.config.guestFullName == null && vm.config.guestId == null)) {
+					var searchString = '' + vm.config.guestFullName + vm.config.guestId;
+					
+					return (searchString.toLowerCase().indexOf(osType) > -1);
+				}
+			}
+			
+			return false;
+		}
+		
+		/** 
+		 * Returns boolean indicating whether a VC:VirtualMachine guest OS is Linux or not.
+		 * 
+		 * @returns {Boolean}
+		 */
+		this.isLinux = function() {
+			var osType = 'linux';
+			
+			return _isOs(osType);
+		}
+		
+		/** 
+		 * Returns boolean indicating whether a VC:VirtualMachine guest OS is Windows or not.
+		 * 
+		 * @returns {Boolean}
+		 */
+		this.isWindows = function() {
+			var osType = 'win';
+			
+			return _isOs(osType);
+		}
+		
+		this.toNativeObject = function() {
+			return _innerObj;
+		}
+		
+		this.vroTags = function(tagName) {
+			var jsonTags = [];
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			var globalTags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				var value = tags.get(tagName);
+				
+				if (value) return value;
+				
+				return globalTags.get(tagName);
+			} else {
+				for each (var k in globalTags.keys) {
+					jsonTags[k] = globalTags.get(k);
+				}
+				
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.private = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tag(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.global = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tagGlobally(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.waitToolsStarted = function(pollingRate, timeout) {
+			if (pollingRate === undefined) pollingRate = 1; //seconds
+			if (timeout === undefined) pollingRate = 5; //minutes
+		
+			var vm = _innerObj;
+			
+			if (vm.name == null) throw "ReferenceError: vm is not initialized for waiting for the DNS name";
+
+			timeout = timeout * 60;
+
+			while (true) {
+				if (vm.guest != null) {
+					if (vm.guest.toolsStatus != null && (vm.guest.toolsStatus == VcVirtualMachineToolsStatus.toolsOk || vm.guest.toolsStatus == VcVirtualMachineToolsStatus.toolsOld)) {
+						if (vm.guest.guestState == "running") {
+							break;
+						}
+					}
+				}
+			
+				// wait the poolingRate
+				System.sleep(pollingRate*1000);
+				// test timeout
+				timeout -= pollingRate;
+				if (timeout <= 0) {
+					throw "Timeout: Timout waiting for tools to be started on a running OS";
+				}
+			}
+		};
+		
+	};
+
+	return new wrapperObject(object);
+});]]></script>
+</dunes-script-module>

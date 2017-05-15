@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>Exported from [server]</comment>
+<entry key="categoryPath">com.vmware.pso.vmquery</entry>
+<entry key="name">init</entry>
+<entry key="type">ScriptModule</entry>
+<entry key="id">049984fd-a031-4cf6-b4cb-dd92b29d2520</entry>
+</properties>

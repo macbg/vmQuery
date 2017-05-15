@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dunes-script-module name="init" result-type="void" api-version="6.0.0" id="cc25f4a3-2775-42d0-8cba-76c3adef2d6e" version="0.0.7" allowed-operations="vef">
+  <description><![CDATA[MIT License
+
+Copyright (c) 2016 Krasimir Markov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
+  <param n="scope" t="Any"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[if (!scope) {
+	throw 'No parent scope specified! Please, pass the parrent scope to the init function!';
+}
+
+var wrapperObjects = {};
+
+function vmQuery(arg) {
+	var object = arg;
+	var type = vmQuery.getObjectType(object);
+	
+	if (type == 'Properties') {
+		typeSelectorCount = 0;
+		for (var typeSelector in object) {
+			typeSelectorCount++;
+		}
+		if (typeSelectorCount === 1) {
+			var objects = Server.findAllForType(typeSelector);
+			var criteria = arg[typeSelector];
+			var obj;
+			for each (obj in objects) {
+				var match = false;
+				for (var propertyName in criteria) {
+					if (obj[propertyName] == criteria[propertyName]) {
+						match = true;
+					} else {
+						match = false;
+						continue;
+					}
+				}
+				if (match) {
+					break;
+				}
+			}
+			
+			if (match) {
+				type = typeSelector;
+				object = obj;
+			} else {
+				return null;
+			}
+		}
+	}
+	
+	/*var wrapperObject = wrapperObjects[type];
+	if (typeof wrapperObject == 'function') {
+		return wrapperObjects[type](object);
+	}*/
+	
+	var wrapperObject = [].concat(wrapperObjects[type]);
+	var wrapperObjectConstructor = wrapperObject.pop();
+	if (typeof wrapperObjectConstructor == 'function') {
+		var args = [object];
+		for each (var argIdentifier in wrapperObject) {
+			args.push(this[argIdentifier]);
+		}
+		
+		return wrapperObjectConstructor.apply(scope, args);
+	}
+	
+	function baseWrapperObject(innerObject) {
+		var _innerObj = innerObject;
+		
+		this.toNativeObject = function() {
+			return _innerObj;
+		};
+		
+		this.vroTags = function(tagName) {
+			var jsonTags = [];
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			var globalTags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				var value = tags.get(tagName);
+				
+				if (value) return value;
+				
+				return globalTags.get(tagName);
+			} else {
+				for each (var k in globalTags.keys) {
+					jsonTags[k] = globalTags.get(k);
+				}
+				
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.private = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tag(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.global = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tagGlobally(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+	};
+	
+	return new baseWrapperObject(object);
+}
+
+vmQuery.registerModule = function(type, handler) {
+	wrapperObjects[type] = [].concat(handler);
+};
+
+vmQuery.getObjectType = function(object) {
+	return System.getObjectType(object);
+};
+
+scope.$ = vmQuery;
+
+var loadComponents = function() {
+	var modules = System.getAllModules();
+
+	for each (var module in modules) {
+		if (module.name.indexOf('com.vmware.pscoe.library.vmquery') == 0) {
+			var actions = module.actions; //TODO: this seems to be not valid attribute name, although, it is documented ???
+			if (!actions) {
+				actions = module.actionDescriptions; //TODO: fallback, using undocumented attribute name ???
+			}
+			for each (var action in actions) {
+				if (action.name != 'init') {
+					module[action.name](scope);
+				}
+			}
+		}
+	}
+}
+
+loadComponents();]]></script>
+</dunes-script-module>

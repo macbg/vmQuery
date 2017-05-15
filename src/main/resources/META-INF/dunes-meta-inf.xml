@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+<comment>10.27.126.251:8281</comment>
+<entry key="vso-build-nb">4359093</entry>
+<entry key="pkg-description">vmQuery - a library, which builds on top of the existing vCO/vRO API, aiming to provide more intuitive way of creating Scripting and Action elements.
+
+This is a very early version of the library and it has no publicly available documentation or repository, yet. 
+For more information, please, contact kmarkov@vmware.com</entry>
+<entry key="pkg-name">com.vmware.pscoe.library.vmquery</entry>
+<entry key="used-plugins"></entry>
+<entry key="pkg-owner">O=VMware,OU=Unknown,CN=vRO vro-l-01a f0dec8c1-63eb-46f7-8c8a-5dfc3899ff25</entry>
+<entry key="vso-version">7.1.0.4359093</entry>
+<entry key="pkg-id">4028bc8158cf2c5e015a18d439e95fba</entry>
+</properties>
