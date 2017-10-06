@@ -48,6 +48,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			return false;
 		}
 		
+		this.datacenter = function() {
+			var vm = _innerObj;
+			
+			var vcManagedObj = vm.parent;
+			
+			while (System.getObjectType(vcManagedObj) != 'VC:Datacenter') {
+				vcManagedObj = vcManagedObj.parent;
+			}
+			
+			return $(vcManagedObj);
+		}
+		
 		/** 
 		 * Returns boolean indicating whether a VC:VirtualMachine guest OS is Linux or not.
 		 * 
