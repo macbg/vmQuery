@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="vCAC_VirtualMachine" result-type="void" api-version="6.0.0" id="6f16accd-2e76-451b-8c8c-d2de03abee95" version="0.0.13" allowed-operations="vef">
+<dunes-script-module name="vCAC_VirtualMachine" result-type="void" api-version="6.0.0" id="6f16accd-2e76-451b-8c8c-d2de03abee95" version="0.0.14" allowed-operations="vef">
   <description><![CDATA[MIT License
 
 Copyright (c) 2016 Krasimir Markov
@@ -35,7 +35,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 					
 			var blueprintId = this.properties('blueprintId');
 
-			return $({'vCAC:Blueprint': {'virtualMachineTemplateID' : blueprintId}});
+			return scope.$({'vCAC:Blueprint': {'virtualMachineTemplateID' : blueprintId}});
 		}
 		
 		/** 
@@ -49,7 +49,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			
 			var cloneFromName = this.properties('__clonefrom');
 			
-			return $({'vCAC:VirtualMachine' : {'virtualMachineName' : cloneFromName}});
+			return scope.$({'vCAC:VirtualMachine' : {'virtualMachineName' : cloneFromName}});
 		}
 		
 		/** 
@@ -76,7 +76,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			
 			//var hostName = vCACVm.vmDNSName;
 			var hostName = vCACVm.virtualMachineName;
-			var dnsSuffix = $(vCACVm).properties('VirtualMachine.Network0.DnsSuffix');
+			var dnsSuffix = scope.$(vCACVm).properties('VirtualMachine.Network0.DnsSuffix');
 			
 			if (dnsSuffix) {
 				return hostName + '.' + dnsSuffix;
@@ -92,13 +92,13 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 		this.host = function() {
 			var vCACVm = _innerObj;
 			//return $(Server.findForType("vCAC:VCACHost", vCACVm.getEntity().hostId));
-			return $(server.findForType("vCAC:VCACHost", vCACVm.getEntity().hostId));
+			return scope.$(server.findForType("vCAC:VCACHost", vCACVm.getEntity().hostId));
 		};
 		
 		this.ip = function() {
 			var vCACVm = _innerObj;
 			
-			return $(vCACVm).properties("VirtualMachine.Network0.Address");
+			return scope.$(vCACVm).properties("VirtualMachine.Network0.Address");
 		}
 		
 		/** 
@@ -293,7 +293,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 					vCenterVm = sdkConnection.searchIndex.findByUuid(null, vCACVm.vmUniqueID, true, true);
 			  	} catch(e) {}
 			  	if (vCenterVm != null) {
-					return $(vCenterVm);
+					return scope.$(vCenterVm);
 				}
 			}
 		};

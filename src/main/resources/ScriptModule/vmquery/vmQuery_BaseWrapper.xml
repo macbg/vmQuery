@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="VC_VirtualMachine" result-type="void" api-version="6.0.0" id="ab78e384-a34c-4fbf-8870-df8b3fc34331" version="0.1.0" allowed-operations="vef">
+<dunes-script-module name="vmQuery_BaseWrapper" result-type="void" api-version="6.0.0" id="5daec737-9b85-4d1b-81ce-eac5381496ea" version="0.0.1" allowed-operations="vef">
   <description><![CDATA[MIT License
 
-Copyright (c) 2016 Krasimir Markov
+Copyright (c) 2017 Krasimir Markov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,79 +21,14 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
   <param n="scope" t="Any"><![CDATA[]]></param>
-  <script encoded="false"><![CDATA[scope.$.registerModule('VC:VirtualMachine', function(object) {
-	
+  <script encoded="false"><![CDATA[scope.$.registerModule('vmQuery:BaseWrapper', function(object) {
+
 	function wrapperObject(innerObject) {
 		var _innerObj = innerObject;
 		
-		function _isOs(osType) {
-			var vm = _innerObj;
-			
-			if (vm.guest) {
-				if (!(vm.guest.guestFullName == null && vm.guest.guestFamily == null)) {
-					var searchString = '' + vm.guest.guestFullName + vm.guest.guestFamily;
-					
-					return (searchString.toLowerCase().indexOf(osType) > -1);
-				}
-			} 
-			
-			if (vm.config) {
-				if (!(vm.config.guestFullName == null && vm.config.guestId == null)) {
-					var searchString = '' + vm.config.guestFullName + vm.config.guestId;
-					
-					return (searchString.toLowerCase().indexOf(osType) > -1);
-				}
-			}
-			
-			return false;
-		}
-		
-		this.datacenter = function() {
-			var vm = _innerObj;
-			
-			var vcManagedObj = vm.parent;
-			
-			while (System.getObjectType(vcManagedObj) != 'VC:Datacenter') {
-				vcManagedObj = vcManagedObj.parent;
-			}
-			
-			return $(vcManagedObj);
-		}
-		
-		/** 
-		 * Returns boolean indicating whether a VC:VirtualMachine guest OS is Linux or not.
-		 * 
-		 * @returns {Boolean}
-		 */
-		this.isLinux = function() {
-			if (_isOs('linux')) {
-				return true;
-			}
-			
-			return _isOs('centos');
-		}
-		
-		/** 
-		 * Returns boolean indicating whether a VC:VirtualMachine guest OS is Windows or not.
-		 * 
-		 * @returns {Boolean}
-		 */
-		this.isWindows = function() {
-			var osType = 'win';
-			
-			return _isOs(osType);
-		}
-		
 		this.toNativeObject = function() {
 			return _innerObj;
-		}
-		
-		this.vCACVm = function() {
-			var vcVm = _innerObj;
-		
-			return scope.$({'vCAC:VirtualMachine': {'vmUniqueID': vcVm.config.instanceUuid}});
-		
-		}
+		};
 		
 		this.vroTags = function(tagName) {
 			var jsonTags = [];
@@ -158,36 +93,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 				return jsonTags;
 			}
 		}
-		
-		this.waitToolsStarted = function(pollingRate, timeout) {
-			if (pollingRate === undefined) pollingRate = 1; //seconds
-			if (timeout === undefined) pollingRate = 5; //minutes
-		
-			var vm = _innerObj;
-			
-			if (vm.name == null) throw "ReferenceError: vm is not initialized for waiting for the DNS name";
-
-			timeout = timeout * 60;
-
-			while (true) {
-				if (vm.guest != null) {
-					if (vm.guest.toolsStatus != null && (vm.guest.toolsStatus == VcVirtualMachineToolsStatus.toolsOk || vm.guest.toolsStatus == VcVirtualMachineToolsStatus.toolsOld)) {
-						if (vm.guest.guestState == "running") {
-							break;
-						}
-					}
-				}
-			
-				// wait the poolingRate
-				System.sleep(pollingRate*1000);
-				// test timeout
-				timeout -= pollingRate;
-				if (timeout <= 0) {
-					throw "Timeout: Timout waiting for tools to be started on a running OS";
-				}
-			}
-		};
-		
 	};
 
 	return new wrapperObject(object);

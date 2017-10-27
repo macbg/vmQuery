@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="init" result-type="void" api-version="6.0.0" id="cc25f4a3-2775-42d0-8cba-76c3adef2d6e" version="0.0.7" allowed-operations="vef">
+<dunes-script-module name="init" result-type="void" api-version="6.0.0" id="cc25f4a3-2775-42d0-8cba-76c3adef2d6e" version="0.1.0" allowed-operations="vef">
   <description><![CDATA[MIT License
 
 Copyright (c) 2016 Krasimir Markov
@@ -23,6 +23,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
   <param n="scope" t="Any"><![CDATA[]]></param>
   <script encoded="false"><![CDATA[if (!scope) {
 	throw 'No parent scope specified! Please, pass the parrent scope to the init function!';
+}
+
+getRootScope = function() {
+	return this;
+}
+
+var originalScope = scope; //needed in actions, if this.$ is used
+var _scope = scope;
+if (!(String(_scope) === "[object Main]")) {
+	_scope = getRootScope();
 }
 
 var wrapperObjects = {};
@@ -64,95 +74,20 @@ function vmQuery(arg) {
 		}
 	}
 	
-	/*var wrapperObject = wrapperObjects[type];
-	if (typeof wrapperObject == 'function') {
-		return wrapperObjects[type](object);
-	}*/
-	
 	var wrapperObject = [].concat(wrapperObjects[type]);
 	var wrapperObjectConstructor = wrapperObject.pop();
-	if (typeof wrapperObjectConstructor == 'function') {
-		var args = [object];
-		for each (var argIdentifier in wrapperObject) {
-			args.push(this[argIdentifier]);
-		}
-		
-		return wrapperObjectConstructor.apply(scope, args);
+	if (typeof wrapperObjectConstructor != 'function') {
+		wrapperObject = [].concat(wrapperObjects["vmQuery:BaseWrapper"]);
+		wrapperObjectConstructor = wrapperObject.pop();
 	}
 	
-	function baseWrapperObject(innerObject) {
-		var _innerObj = innerObject;
+	var args = [object];
+	for each (var argIdentifier in wrapperObject) {
+		//args.push(this[argIdentifier]);
+		args.push(getRootScope()[argIdentifier]); // Must always get the root scope, since top level objects are deffined there
+	}
 		
-		this.toNativeObject = function() {
-			return _innerObj;
-		};
-		
-		this.vroTags = function(tagName) {
-			var jsonTags = [];
-			
-			var tags = Server.findTagsForObject(_innerObj);
-			var globalTags = Server.findGlobalTagsForObject(_innerObj);
-			if (tagName) {
-				var value = tags.get(tagName);
-				
-				if (value) return value;
-				
-				return globalTags.get(tagName);
-			} else {
-				for each (var k in globalTags.keys) {
-					jsonTags[k] = globalTags.get(k);
-				}
-				
-				for each (var k in tags.keys) {
-					jsonTags[k] = tags.get(k);
-				}
-				
-				return jsonTags;
-			}
-		}
-		
-		this.vroTags.private = function(tagName, tagValue) {
-			var jsonTags = [];
-			
-			if (tagName && tagValue) {
-				Server.tag(_innerObj, tagName, tagValue);
-				return;
-			}
-			
-			var tags = Server.findTagsForObject(_innerObj);
-			if (tagName) {
-				return tags.get(tagName);
-			} else {
-				for each (var k in tags.keys) {
-					jsonTags[k] = tags.get(k);
-				}
-				
-				return jsonTags;
-			}
-		}
-		
-		this.vroTags.global = function(tagName, tagValue) {
-			var jsonTags = [];
-			
-			if (tagName && tagValue) {
-				Server.tagGlobally(_innerObj, tagName, tagValue);
-				return;
-			}
-			
-			var tags = Server.findGlobalTagsForObject(_innerObj);
-			if (tagName) {
-				return tags.get(tagName);
-			} else {
-				for each (var k in tags.keys) {
-					jsonTags[k] = tags.get(k);
-				}
-				
-				return jsonTags;
-			}
-		}
-	};
-	
-	return new baseWrapperObject(object);
+	return wrapperObjectConstructor.apply(_scope, args);
 }
 
 vmQuery.registerModule = function(type, handler) {
@@ -163,7 +98,8 @@ vmQuery.getObjectType = function(object) {
 	return System.getObjectType(object);
 };
 
-scope.$ = vmQuery;
+_scope.$ = vmQuery;
+originalScope.$ = vmQuery; //needed in actions, if this.$ is used
 
 var loadComponents = function() {
 	var modules = System.getAllModules();
@@ -176,7 +112,7 @@ var loadComponents = function() {
 			}
 			for each (var action in actions) {
 				if (action.name != 'init') {
-					module[action.name](scope);
+					module[action.name](_scope);
 				}
 			}
 		}
