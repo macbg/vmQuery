@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dunes-script-module name="vCACCAFE_Entitlement" result-type="void" api-version="6.0.0" id="3d603439-6370-4feb-a713-fb1d9a46fdb7" version="0.0.1" allowed-operations="vef">
+  <description><![CDATA[MIT License
+
+Copyright (c) 2016 Krasimir Markov
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
+  <param n="scope" t="Any"><![CDATA[]]></param>
+  <script encoded="false"><![CDATA[scope.$.registerModule('vCACCAFE:Entitlement', function(object) {
+	
+	function wrapperObject(innerObject) {
+		var _innerObj = innerObject;
+		
+		this.actions = function(action) {
+			var entitlement = _innerObj;
+			
+			if (action) {
+				var cafeCatalogResourceAction = scope.$({"vCACCAFE:CatalogResourceAction": {"name": action}}).toNativeObject();
+				var entitledResourceOperation = new vCACCAFEEntitledResourceOperation();
+				
+				var reference = new vCACCAFELabelledReference();
+				reference.setId(cafeCatalogResourceAction.getId());
+				reference.setLabel(cafeCatalogResourceAction.getName());
+			
+				entitledResourceOperation.setResourceOperationRef(reference);
+				
+				vCACCAFEEntityHelper.addElementToList(entitlement, "getEntitledResourceOperations", entitledResourceOperation);
+				
+				this.host().toNativeObject().createCatalogClient().getCatalogEntitlementService().update(entitlement);
+				this.reload();
+			} else {
+				var jsonActions = [];
+				
+				var actions = entitlement.getEntitledResourceOperations();
+				for each (var a in actions) {
+					jsonActions.push(a.getResourceOperationRef().getLabel());
+				}
+				return jsonActions;
+			}
+		}
+		
+		this.host = function() {
+			var entitlement = _innerObj;
+			return scope.$(vCACCAFEEntitiesFinder.getHostForEntity(entitlement));
+		}
+		
+		this.items = function(item) {
+			var entitlement = _innerObj;
+			
+			if (item) {
+				var cafeCatalogItem = scope.$({"vCACCAFE:CatalogItem": {"name": item}}).toNativeObject();
+				var entitledCatalogItem = new vCACCAFEEntitledCatalogItem();
+				
+				var reference = new vCACCAFELabelledReference();
+				reference.setId(cafeCatalogItem.getId());
+				reference.setLabel(cafeCatalogItem.getName());
+			
+				entitledCatalogItem.setCatalogItemRef(reference);
+				
+				vCACCAFEEntityHelper.addElementToList(entitlement, "getEntitledCatalogItems", entitledCatalogItem);
+				
+				this.host().toNativeObject().createCatalogClient().getCatalogEntitlementService().update(entitlement);
+				this.reload();
+			} else {
+				var jsonItems = [];
+				
+				var items = entitlement.getEntitledCatalogItems();
+				for each (var i in items) {
+					jsonItems.push(i.getCatalogItemRef().getLabel());
+				}
+				return jsonItems;
+			}
+		}
+		
+		this.reload = function() {
+			var entitlement = _innerObj;
+			
+			_innerObj = vCACCAFEEntitiesFinder.getEntitlement(this.host().toNativeObject(), ent.toNativeObject().id);
+		}
+		
+		this.services = function(service) {
+			var entitlement = _innerObj;
+			
+			if (service) {
+				var cafeService = scope.$({"vCACCAFE:Service": {"name": service}}).toNativeObject();
+				var entitledService = new vCACCAFEEntitledService();
+				
+				var reference = new vCACCAFELabelledReference();
+				reference.setId(cafeService.getId());
+				reference.setLabel(cafeService.getName());
+			
+				entitledService.setServiceRef(reference);
+				
+				vCACCAFEEntityHelper.addElementToList(entitlement, "getEntitledServices", entitledService);
+				
+				this.host().toNativeObject().createCatalogClient().getCatalogEntitlementService().update(entitlement);
+				this.reload();
+			} else {
+				var jsonServices = [];
+				
+				var services = entitlement.getEntitledServices();
+				for each (var s in services) {
+					jsonServices.push(s.getServiceRef().getLabel());
+				}
+				return jsonServices;
+			}
+		}
+		
+		this.toNativeObject = function() {
+			return _innerObj;
+		};
+		
+		this.vroTags = function(tagName) {
+			var jsonTags = [];
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			var globalTags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				var value = tags.get(tagName);
+				
+				if (value) return value;
+				
+				return globalTags.get(tagName);
+			} else {
+				for each (var k in globalTags.keys) {
+					jsonTags[k] = globalTags.get(k);
+				}
+				
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.private = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tag(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+		this.vroTags.global = function(tagName, tagValue) {
+			var jsonTags = [];
+			
+			if (tagName && tagValue) {
+				Server.tagGlobally(_innerObj, tagName, tagValue);
+				return;
+			}
+			
+			var tags = Server.findGlobalTagsForObject(_innerObj);
+			if (tagName) {
+				return tags.get(tagName);
+			} else {
+				for each (var k in tags.keys) {
+					jsonTags[k] = tags.get(k);
+				}
+				
+				return jsonTags;
+			}
+		}
+		
+	};
+
+	return new wrapperObject(object);
+});]]></script>
+</dunes-script-module>
