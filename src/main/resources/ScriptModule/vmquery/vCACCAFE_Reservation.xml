@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="Array" result-type="void" api-version="6.0.0" id="825ac91c-5668-4686-abb3-e4c785af454e" version="0.0.1" allowed-operations="vef">
+<dunes-script-module name="vCACCAFE_Reservation" result-type="void" api-version="6.0.0" id="0beeb98d-5335-42c6-967d-3234aae83cd4" version="0.0.1" allowed-operations="vef">
   <description><![CDATA[MIT License
 
-Copyright (c) 2017 Krasimir Markov
+Copyright (c) 2018 Krasimir Markov
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,73 +21,37 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
   <param n="scope" t="Any"><![CDATA[]]></param>
-  <script encoded="false"><![CDATA[scope.$.registerModule('Array', function(object) {
+  <script encoded="false"><![CDATA[scope.$.registerModule('vCACCAFE:Reservation', function(object) {
 	
 	function wrapperObject(innerObject) {
 		var _innerObj = innerObject;
 		
-		this.distinct = function() {
-			var arr = _innerObj;
-			
-			var response = [];
-			
-			arr.forEach(function(e) {
-				if (response.indexOf(e) == -1) {
-					response.push(e);
-				}
-			});
-			
-			return response;
+		this.host = function() {
+			var reservation = _innerObj;
+			return scope.$(vCACCAFEEntitiesFinder.getHostForEntity(reservation));
 		}
 		
-		this.first = function() {
-			var arr = _innerObj;
+		this.networks = function(networkName) {
+			var reservation = _innerObj;
 			
-			if (arr.length == 0) {
-				throw "Array is empty";
+			var networksJson = {};
+			
+			reservation
+				.getExtensionData()
+					.get("reservationNetworks")
+						.getValue()
+							.forEach(function(n) {
+								var nLM = n.getValue();
+								networksJson[nLM.get("networkPath").getLabel()] = (nLM.containsKey("networkProfile") ? nLM.get("networkProfile").getLabel() : null);
+							});
+							
+			if (networkName) {
+				var singleNetworkJson = {};
+				singleNetworkJson[networkName] = networksJson[networkName];
+				return singleNetworkJson;
 			}
 			
-			return arr[0];
-		}
-		
-		this.last = function() {
-			var arr = _innerObj;
-			
-			if (arr.length == 0) {
-				throw "Array is empty";
-			}
-			
-			return arr[arr.length-1];
-		}
-		
-		this.push = function(args) {
-			var arr = _innerObj;
-			
-			Array.prototype.push.apply(arr, [].concat(args));
-		}
-		
-		this.single = function() {
-			var arr = _innerObj;
-			
-			if (arr.length == 0) {
-				throw "Array is empty";
-			}
-			
-			if (arr.length > 1) {
-				throw "Array has more than one element";
-			}
-			
-			return arr[0];
-		}
-		
-		this.singleOrNull = function() {
-			var arr = _innerObj;
-			
-			if (arr.length != 1) {
-				return null;
-			}
-			
-			return arr[0];
+			return networksJson;
 		}
 		
 		this.toNativeObject = function() {
@@ -156,16 +120,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 				
 				return jsonTags;
 			}
-		}
-		
-		this.where = function(selector) {
-			var response = [];
-			
-			for (var i in _innerObj) {
-				var element = _innerObj[i];
-			}
-			
-			return response;
 		}
 		
 	};
