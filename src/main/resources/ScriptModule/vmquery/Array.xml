@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="Array" result-type="void" api-version="6.0.0" id="825ac91c-5668-4686-abb3-e4c785af454e" version="0.0.1" allowed-operations="vef">
+<dunes-script-module name="Array" result-type="void" api-version="6.0.0" id="825ac91c-5668-4686-abb3-e4c785af454e" version="0.0.2" allowed-operations="vef">
   <description><![CDATA[MIT License
 
 Copyright (c) 2017 Krasimir Markov
@@ -64,6 +64,18 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			var arr = _innerObj;
 			
 			Array.prototype.push.apply(arr, [].concat(args));
+		}
+		
+		this.remove = function(element) {
+			var arr = _innerObj;
+			
+			var idx = arr.indexOf(element);
+			if (idx > -1) {
+				arr.splice(idx, 1);
+				return true;
+			}
+			
+			return false;
 		}
 		
 		this.single = function() {

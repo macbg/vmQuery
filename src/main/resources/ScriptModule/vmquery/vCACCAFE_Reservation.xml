@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="vCACCAFE_Reservation" result-type="void" api-version="6.0.0" id="0beeb98d-5335-42c6-967d-3234aae83cd4" version="0.0.1" allowed-operations="vef">
+<dunes-script-module name="vCACCAFE_Reservation" result-type="void" api-version="6.0.0" id="0beeb98d-5335-42c6-967d-3234aae83cd4" version="0.0.2" allowed-operations="vef">
   <description><![CDATA[MIT License
 
 Copyright (c) 2018 Krasimir Markov
@@ -25,6 +25,26 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 	
 	function wrapperObject(innerObject) {
 		var _innerObj = innerObject;
+		
+		this.computeResource = function() {
+			var reservation = _innerObj;
+			
+			var clusterLiteral = reservation.getExtensionData().get("computeResource");
+			var vcacHostMachine = Server.findForType("vCAC:HostMachine", clusterLiteral.getId());
+			
+			var hostUniqueIdArr = vcacHostMachine.hostUniqueId.split("/");
+			var vcId = hostUniqueIdArr.shift();
+			var inventoryPath = hostUniqueIdArr.join("/");
+			
+			var vc = Server.findForType("VC:SdkConnection", vcId);
+			var compRes = vc.searchIndex.findByInventoryPath(inventoryPath);
+			
+			if (compRes) {
+				return scope.$(vc.searchIndex.findByInventoryPath(inventoryPath));
+			}
+			
+			return null;
+		}
 		
 		this.host = function() {
 			var reservation = _innerObj;

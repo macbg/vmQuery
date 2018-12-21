@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<dunes-script-module name="VC_VirtualMachine" result-type="void" api-version="6.0.0" id="ab78e384-a34c-4fbf-8870-df8b3fc34331" version="0.1.0" allowed-operations="vef">
+<dunes-script-module name="VC_VirtualMachine" result-type="void" api-version="6.0.0" id="ab78e384-a34c-4fbf-8870-df8b3fc34331" version="0.1.1" allowed-operations="vef">
   <description><![CDATA[MIT License
 
 Copyright (c) 2016 Krasimir Markov
@@ -71,6 +71,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			}
 			
 			return _isOs('centos');
+		}
+		
+		this.ip = function() {
+			var vm = _innerObj;
+			
+			return vm.guest.ipAddress;
 		}
 		
 		/** 
