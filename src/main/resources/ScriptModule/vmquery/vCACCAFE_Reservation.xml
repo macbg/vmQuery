@@ -36,7 +36,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			var vcId = hostUniqueIdArr.shift();
 			var inventoryPath = hostUniqueIdArr.join("/");
 			
-			var vc = Server.findForType("VC:SdkConnection", vcId);
+			//var vc = Server.findForType("VC:SdkConnection", vcId);
+			var vc = scope.$(Server.findAllForType("VC:SdkConnection", "xpath:id[translate(.,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz')='" + vcId.toLowerCase() + "']")).single();
 			var compRes = vc.searchIndex.findByInventoryPath(inventoryPath);
 			
 			if (compRes) {

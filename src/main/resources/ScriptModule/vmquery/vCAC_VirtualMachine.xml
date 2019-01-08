@@ -288,6 +288,19 @@ OUT OF OR IN CONNECTION WITH THE SOFTWAR]]></description>
 			return _innerObj;
 		}
 		
+		this.vcacReservation = function() {
+			var vCACVm = _innerObj;
+			
+			var id = vCACVm.getEntity().getProperty("HostReservationID");
+			var idprop = new Properties( { 
+				"HostReservationID" : id
+			});
+			
+			var resEntity = vCACEntityManager.readModelEntity(this.host().toNativeObject().id, "ManagementModelEntities.svc", "HostReservations", idprop, null);
+			
+			return scope.$(resEntity.getInventoryObject());
+		} 
+		
 		this.vcVM = function() {
 			return this.virtualCenterVM();
 		}
